@@ -299,6 +299,7 @@ dependencies = [
     { name = "google-api-python-client" },
     { name = "google-auth" },
     { name = "google-auth-httplib2" },
+    { name = "httpx" },
     { name = "mcp", extra = ["cli"] },
 ]
 
@@ -307,6 +308,7 @@ requires-dist = [
     { name = "google-api-python-client", specifier = ">=2.166.0" },
     { name = "google-auth", specifier = ">=2.38.0" },
     { name = "google-auth-httplib2", specifier = ">=0.2.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
     { name = "mcp", extras = ["cli"], specifier = ">=1.6.0" },
 ]
 

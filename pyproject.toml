@@ -8,5 +8,6 @@ dependencies = [
     "google-api-python-client>=2.166.0",
     "google-auth>=2.38.0",
     "google-auth-httplib2>=0.2.0",
+    "httpx>=0.28.1",
     "mcp[cli]>=1.6.0",
 ]

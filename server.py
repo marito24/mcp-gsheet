@@ -1,63 +1,13 @@
-import os
-
 from mcp.server.fastmcp import FastMCP
-from google.oauth2.service_account import Credentials
-from googleapiclient.discovery import build
+
 from googleapiclient.errors import HttpError
 
+from gsheet_service import gsheet_service
 # --- Configuration ---
 # See: https://docs.gspread.org/en/latest/oauth2.html
 # Service account key path expected in GOOGLE_APPLICATION_CREDENTIALS env var
-SERVICE_ACCOUNT_FILE = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 
-# --- MCP Server Setup ---
 mcp = FastMCP("Google Sheets Controller")
-
-
-# --- Google Sheets Client Setup ---
-def get_sheets_service():
-    """Builds and returns an authorized Google Sheets API service object."""
-    if not SERVICE_ACCOUNT_FILE:
-        raise ValueError(
-            "Environment variable GOOGLE_APPLICATION_CREDENTIALS is not set."
-        )
-    if not os.path.exists(SERVICE_ACCOUNT_FILE):
-        raise FileNotFoundError(
-            f"Service account key file not found at: {SERVICE_ACCOUNT_FILE}"
-        )
-
-    scopes = ["https://www.googleapis.com/auth/spreadsheets"]
-    creds = Credentials.from_service_account_file(
-        filename=SERVICE_ACCOUNT_FILE, scopes=scopes
-    )
-
-    try:
-        service = build(
-            serviceName="sheets",
-            version="v4",
-            credentials=creds,
-            static_discovery=False,
-        )
-        return service
-    except HttpError as err:
-        print(f"Error building Sheets service: {err}")
-        raise
-
-
-# Lazy initialization of the service
-_sheets_service = None
-
-
-def sheets_service():
-    """Returns a cached Sheets service object, initializing if needed."""
-    global _sheets_service
-    if _sheets_service is None:
-        _sheets_service = get_sheets_service()
-    return _sheets_service
-
-
-# --- MCP Tools for Google Sheets ---
-
 
 @mcp.tool(
     name="list_sheets",
@@ -73,7 +23,7 @@ def list_sheets(spreadsheet_id: str) -> list[str]:
         A list of sheet names (strings).
     """
     try:
-        service = sheets_service()
+        service = gsheet_service()
         # Call the Sheets API
         sheet_metadata = (
             service.spreadsheets()
@@ -113,7 +63,7 @@ def read_cells(spreadsheet_id: str, range_name: str) -> list[list[str]]:
         A 2D list of strings representing the cell values.
     """
     try:
-        service = sheets_service()
+        service = gsheet_service()
         # Call the Sheets API
         result = (
             service.spreadsheets()
@@ -163,7 +113,7 @@ def write_cells(spreadsheet_id: str, range_name: str, values: list[list[str]]) -
         A confirmation message or an error string.
     """
     try:
-        service = sheets_service()
+        service = gsheet_service()
         body = {"values": values}
         # Call the Sheets API
         result = (
@@ -210,13 +160,6 @@ def write_cells(spreadsheet_id: str, range_name: str, values: list[list[str]]) -
 
 # --- Run the Server ---
 if __name__ == "__main__":
-    # This allows running the server directly using
-    # `python gsheet_mcp_server.py` or using the mcp command:
-    # `mcp run gsheet_mcp_server.py`
-    # The server will be available via stdio
     print("Starting Google Sheets MCP Server...")
     print("Ensure GOOGLE_APPLICATION_CREDENTIALS environment variable is set.")
-    # The mcp.run() command needs to be invoked via the mcp CLI runner
-    # This __main__ block is primarily for informational purposes when run
-    # directly.
-    pass
+    mcp.run(transport='stdio')

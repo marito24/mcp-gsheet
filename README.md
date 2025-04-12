@@ -12,18 +12,20 @@ It explicitly **does not** provide tools for managing Google Drive files (listin
 
 ## Prerequisites
 
-1.  **Python 3.8+**
-2.  **Google Cloud Project:** You need a Google Cloud project with the Google Sheets API enabled.
+1.  **Python 3.11+**
+2.  **Google Cloud Project with the Google Sheets API enabled**
 3.  **Service Account Key:**
-    - Go to the Google Cloud Console -> APIs & Services -> Credentials.
-    - Create a new Service Account.
-    - Grant this service account the "Editor" role (or a more restrictive custom role) for the Google Sheets you want to access.
+    - Go to the Google Cloud Console and create a new Service Account.
     - Download the service account key file (JSON format).
-    - **Important:** Share the specific Google Sheet(s) you want to control with the service account's email address (found in the JSON key file or the Cloud Console).
+    - Grant this service account the "Editor" role for the Google Sheets you want to access.
 
-## Setup
+## How to use
 
-1.  **Clone the repository (or copy the files).**
+1.  **Clone the repository.**
+
+    ```bash
+    git clone https://github.com/shionhonda/mcp-gsheet.git
+    ```
 
 2.  **Set up Google Credentials:**
 
@@ -36,25 +38,48 @@ It explicitly **does not** provide tools for managing Google Drive files (listin
     - Alternatively, you can place the key file in a standard location recognized by the Google Cloud client libraries (not recommended for shared environments).
 
 3.  **Install Dependencies:**
+
     ```bash
-    pip install -r requirements.txt
-    ```
-    _Note: You might want to use a virtual environment (`venv`) to keep dependencies isolated._
-    ```bash
-    python -m venv venv
-    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-    pip install -r requirements.txt
+    uv venv
+    source .venv/bin/activate
     ```
 
-## Running the Server
+4.  Run the Server
 
-Use the `mcp` command-line tool (installed as part of `mcp-sdk`) to run the server:
+    To develop the server with MCP Inspector:
 
-```bash
-mcp run gsheet_mcp_server.py
+    ```bash
+    mcp dev server.py
+    ```
+
+    To run the server:
+
+    ```bash
+    mcp run server.py
+    ```
+
+    The server will start and listen for MCP requests over standard input/output (stdio).
+
+## Claude Desktop
+
+```json
+{
+    "mcpServers": {
+        "gsheet": {
+            "command": "/path/to/uv",
+            "env": {
+            "GOOGLE_APPLICATION_CREDENTIALS":"/path/to/your/service-account-key.json"
+            },
+            "args": [
+                "--directory",
+                "/path/to/mcp-gsheet",
+                "run",
+                "server.py"
+            ]
+        }
+    }
+}
 ```
-
-The server will start and listen for MCP requests over standard input/output (stdio).
 
 ## MCP Tools Provided
 
