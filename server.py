@@ -3,11 +3,9 @@ from mcp.server.fastmcp import FastMCP
 from googleapiclient.errors import HttpError
 
 from gsheet_service import gsheet_service
-# --- Configuration ---
-# See: https://docs.gspread.org/en/latest/oauth2.html
-# Service account key path expected in GOOGLE_APPLICATION_CREDENTIALS env var
 
 mcp = FastMCP("Google Sheets Controller")
+
 
 @mcp.tool(
     name="list_sheets",
@@ -24,26 +22,20 @@ def list_sheets(spreadsheet_id: str) -> list[str]:
     """
     try:
         service = gsheet_service()
-        # Call the Sheets API
         sheet_metadata = (
             service.spreadsheets()
-            # Get only sheet titles
-            .get(
-                spreadsheetId=spreadsheet_id, fields="sheets.properties.title"
-            ).execute()
+            .get(spreadsheetId=spreadsheet_id, fields="sheets.properties.title")
+            .execute()
         )
         sheets = sheet_metadata.get("sheets", [])
-        # Extract titles, handling potential missing properties
         titles = [sheet.get("properties", {}).get("title", "") for sheet in sheets]
         return titles
     except HttpError as err:
-        # Handle API errors
         if err.resp.status == 404:
             return [f"Error: Spreadsheet not found with ID: {spreadsheet_id}"]
         else:
             return [f"Error listing sheets: {str(err)}"]
     except Exception as e:
-        # General error handling
         return [f"Error listing sheets: {str(e)}"]
 
 
@@ -64,7 +56,6 @@ def read_cells(spreadsheet_id: str, range_name: str) -> list[list[str]]:
     """
     try:
         service = gsheet_service()
-        # Call the Sheets API
         result = (
             service.spreadsheets()
             .values()
@@ -72,11 +63,8 @@ def read_cells(spreadsheet_id: str, range_name: str) -> list[list[str]]:
             .execute()
         )
         values = result.get("values", [])
-        # Ensure all inner elements are lists for consistent typing, even empty rows
-        # and convert all cell values to strings
         return [[str(cell) for cell in row] for row in values]
     except HttpError as err:
-        # Handle API errors
         if err.resp.status == 404:
             return [[f"Error: Spreadsheet not found with ID: {spreadsheet_id}"]]
         elif "Unable to parse range" in str(err):
@@ -88,11 +76,8 @@ def read_cells(spreadsheet_id: str, range_name: str) -> list[list[str]]:
                 ]
             ]
         else:
-            # Catch-all for other HTTP errors during read
             return [[f"Error reading cells: {str(err)}"]]
     except Exception as e:
-        # General error handling
-        # Ensure the return type matches the function signature (list[list[str]])
         return [[f"Unexpected error reading cells: {str(e)}"]]
 
 
@@ -115,7 +100,6 @@ def write_cells(spreadsheet_id: str, range_name: str, values: list[list[str]]) -
     try:
         service = gsheet_service()
         body = {"values": values}
-        # Call the Sheets API
         result = (
             service.spreadsheets()
             .values()
@@ -127,7 +111,6 @@ def write_cells(spreadsheet_id: str, range_name: str, values: list[list[str]]) -
             )
             .execute()
         )
-        # result contains information like updatedCells, updatedRange, etc.
         updated_range = result.get("updatedRange")
         updated_cells = result.get("updatedCells")
         return (
@@ -135,11 +118,9 @@ def write_cells(spreadsheet_id: str, range_name: str, values: list[list[str]]) -
         )
 
     except HttpError as err:
-        # Handle API errors
         if err.resp.status == 404:
             return f"Error: Spreadsheet not found with ID: {spreadsheet_id}"
         elif err.resp.status == 400:
-            # More specific error for bad range or data
             error_details = err.content.decode("utf-8")
             if "Unable to parse range" in error_details:
                 return (
@@ -148,18 +129,14 @@ def write_cells(spreadsheet_id: str, range_name: str, values: list[list[str]]) -
                     f"the first sheet."
                 )
             else:
-                # More specific error from API content
                 return f"Error writing cells (Bad Request): {error_details}"
         else:
-            # Catch-all for other HTTP errors during write
             return f"Error writing cells: {str(err)}"
     except Exception as e:
-        # General error handling
         return f"Unexpected error writing cells: {str(e)}"
 
 
-# --- Run the Server ---
 if __name__ == "__main__":
     print("Starting Google Sheets MCP Server...")
     print("Ensure GOOGLE_APPLICATION_CREDENTIALS environment variable is set.")
-    mcp.run(transport='stdio')
+    mcp.run(transport="stdio")

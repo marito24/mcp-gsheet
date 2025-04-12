@@ -6,6 +6,7 @@ from googleapiclient.errors import HttpError
 
 SERVICE_ACCOUNT_FILE = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 
+
 def get_gsheet_service():
     """Builds and returns an authorized Google Sheets API service object."""
     if not SERVICE_ACCOUNT_FILE:

@@ -62,22 +62,19 @@ It explicitly **does not** provide tools for managing Google Drive files (listin
 
 ## Claude Desktop
 
+Add the following to your Claude Desktop configuration:
+
 ```json
 {
-    "mcpServers": {
-        "gsheet": {
-            "command": "/path/to/uv",
-            "env": {
-            "GOOGLE_APPLICATION_CREDENTIALS":"/path/to/your/service-account-key.json"
-            },
-            "args": [
-                "--directory",
-                "/path/to/mcp-gsheet",
-                "run",
-                "server.py"
-            ]
-        }
+  "mcpServers": {
+    "gsheet": {
+      "command": "/path/to/uv",
+      "env": {
+        "GOOGLE_APPLICATION_CREDENTIALS": "/path/to/your/service-account-key.json"
+      },
+      "args": ["--directory", "/path/to/mcp-gsheet", "run", "server.py"]
     }
+  }
 }
 ```
 
