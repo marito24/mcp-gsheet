@@ -15,12 +15,15 @@ RUN pip install --no-cache-dir \
 RUN git clone https://github.com/shionhonda/mcp-gsheet.git /opt/mcp-gsheet
 WORKDIR /opt/mcp-gsheet
 
+# …todo igual hasta aquí…
+
 # ----- VARS que Railway inyectará -----
 ENV SERVICE_ACCOUNT_PATH=/app/sa.json \
     PORT=${PORT:-8000}
 
 EXPOSE ${PORT}
 
-# ---- Arranque: ejecutamos el server.py tal cual ----
-CMD ["python", "server.py", "--transport", "streamable-http",
-     "--host", "0.0.0.0", "--port", "${PORT}"]
+# ---- Arranque ----
+# Forma shell (más fácil de leer) — ¡todo en UNA sola línea!
+CMD python server.py --transport streamable-http --host 0.0.0.0 --port ${PORT}
+
