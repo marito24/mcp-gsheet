@@ -1,29 +1,35 @@
 FROM python:3.12-slim
 
-# Evita archivos innecesarios
+# --- 1. Dependencias básicas ---
+RUN apt-get update -y && \
+    apt-get install -y git && \
+    rm -rf /var/lib/apt/lists/*
+
+# Evita archivos .pyc y cache innecesaria
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1
 
-# Instala dependencias básicas
-RUN apt-get update && apt-get install -y git && \
-    pip install --no-cache-dir uv
+# --- 2. Herramientas y SDK MCP ---
+# uv  → gestor de dependencias recomendado
+# mcp → CLI oficial para arrancar servidores
+RUN pip install --no-cache-dir uv mcp \
+    google-api-python-client google-auth google-auth-httplib2 google-auth-oauthlib
 
-# Clona tu fork de mcp-gsheet (REEMPLAZA por tu propio repo si quieres)
-RUN git clone https://github.com/shionhonda/mcp-gsheet.git /app/mcp-gsheet
-
-# Entra en la carpeta y lo instala como paquete local
+# --- 3. Clonar tu fork ---
+RUN git clone https://github.com/TU-USUARIO/mcp-gsheet /app/mcp-gsheet
 WORKDIR /app/mcp-gsheet
-RUN pip install .
 
-# Define variables
+# --- 4. Instalar las deps del proyecto con uv ---
+RUN uv pip install -e .
+
+# --- 5. Variables de entorno (Railway inyectará $PORT) ---
 ENV SERVICE_ACCOUNT_PATH=/app/sa.json \
     PORT=${PORT:-8000}
 
-# Copia la clave si quieres subirla tú (si no, la montas con Railway Secrets)
-# COPY sa.json /app/sa.json
-
 EXPOSE ${PORT}
 
-# Arranca el servidor MCP
-CMD ["uvx", "mcp-gsheet", "--transport", "streamable-http", "--host", "0.0.0.0", "--port", "${PORT}"]
-
+# --- 6. Arranque del servidor en modo HTTP streamable ---
+CMD ["mcp", "run", "server.py",
+     "--transport", "streamable-http",
+     "--host", "0.0.0.0",
+     "--port", "${PORT}"]
